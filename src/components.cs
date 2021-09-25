@@ -77,7 +77,7 @@ namespace Bitron.Ecs
         void ReflectionSupportHack()
         {
             _world.GetPool<T>();
-            _world.Filter<T>().Exc<T>().End();
+            _world.Query<T>().Exc<T>().End();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

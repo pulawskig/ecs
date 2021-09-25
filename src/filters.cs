@@ -12,12 +12,12 @@ using System.Runtime.CompilerServices;
 namespace Bitron.Ecs
 {
 #if LEOECSLITE_FILTER_EVENTS
-    public interface IEcsFilterEventListener {
+    public interface IEcsQueryEventListener {
         void OnEntityAdded (int entity);
         void OnEntityRemoved (int entity);
     }
 #endif
-    public sealed class EcsFilter
+    public sealed class EcsQuery
     {
         readonly EcsWorld _world;
         readonly Mask _mask;
@@ -28,11 +28,11 @@ namespace Bitron.Ecs
         DelayedOp[] _delayedOps;
         int _delayedOpsCount;
 #if LEOECSLITE_FILTER_EVENTS
-        IEcsFilterEventListener[] _eventListeners = new IEcsFilterEventListener[4];
+        IEcsQueryEventListener[] _eventListeners = new IEcsQueryEventListener[4];
         int _eventListenersCount;
 #endif
 
-        internal EcsFilter(EcsWorld world, Mask mask, int denseCapacity, int sparseCapacity)
+        internal EcsQuery(EcsWorld world, Mask mask, int denseCapacity, int sparseCapacity)
         {
             _world = world;
             _mask = mask;
@@ -76,7 +76,7 @@ namespace Bitron.Ecs
         }
 
 #if LEOECSLITE_FILTER_EVENTS
-        public void AddEventListener (IEcsFilterEventListener eventListener) {
+        public void AddEventListener (IEcsQueryEventListener eventListener) {
 #if DEBUG
             for (var i = 0; i < _eventListenersCount; i++) {
                 if (_eventListeners[i] == eventListener) {
@@ -90,7 +90,7 @@ namespace Bitron.Ecs
             _eventListeners[_eventListenersCount++] = eventListener;
         }
 
-        public void RemoveEventListener (IEcsFilterEventListener eventListener) {
+        public void RemoveEventListener (IEcsQueryEventListener eventListener) {
             for (var i = 0; i < _eventListenersCount; i++) {
                 if (_eventListeners[i] == eventListener) {
                     _eventListenersCount--;
@@ -204,16 +204,16 @@ namespace Bitron.Ecs
 
         public struct Enumerator : IDisposable
         {
-            readonly EcsFilter _filter;
+            readonly EcsQuery _query;
             readonly int[] _entities;
             readonly int _count;
             int _idx;
 
-            public Enumerator(EcsFilter filter)
+            public Enumerator(EcsQuery query)
             {
-                _filter = filter;
-                _entities = filter._denseEntities;
-                _count = filter._entitiesCount;
+                _query = query;
+                _entities = query._denseEntities;
+                _count = query._entitiesCount;
                 _idx = -1;
             }
 
@@ -232,7 +232,7 @@ namespace Bitron.Ecs
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose()
             {
-                _filter.Unlock();
+                _query.Unlock();
             }
         }
 
@@ -300,7 +300,7 @@ namespace Bitron.Ecs
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public EcsFilter End(int capacity = 512)
+            public EcsQuery End(int capacity = 512)
             {
 #if DEBUG
                 if (_built) { throw new Exception("Cant change built mask."); }
@@ -318,9 +318,9 @@ namespace Bitron.Ecs
                 {
                     Hash = unchecked(Hash * 314159 - Exclude[i]);
                 }
-                var (filter, isNew) = _world.GetFilterInternal(this, capacity);
+                var (query, isNew) = _world.GetQueryInternal(this, capacity);
                 if (!isNew) { Recycle(); }
-                return filter;
+                return query;
             }
 
             void Recycle()

@@ -22,10 +22,10 @@ namespace Bitron.Ecs
         int _poolsCount;
         readonly int _poolDenseSize;
         readonly Dictionary<Type, IEcsPool> _poolHashes;
-        readonly Dictionary<int, EcsFilter> _hashedFilters;
-        readonly List<EcsFilter> _allFilters;
-        List<EcsFilter>[] _filtersByIncludedComponents;
-        List<EcsFilter>[] _filtersByExcludedComponents;
+        readonly Dictionary<int, EcsQuery> _hashedQuerys;
+        readonly List<EcsQuery> _allQuerys;
+        List<EcsQuery>[] _queriesByIncludedComponents;
+        List<EcsQuery>[] _queriesByExcludedComponents;
         Dictionary<Type, object> _resources;
         bool _destroyed;
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
@@ -89,13 +89,13 @@ namespace Bitron.Ecs
             capacity = cfg.Pools > 0 ? cfg.Pools : Config.PoolsDefault;
             _pools = new IEcsPool[capacity];
             _poolHashes = new Dictionary<Type, IEcsPool>(capacity);
-            _filtersByIncludedComponents = new List<EcsFilter>[capacity];
-            _filtersByExcludedComponents = new List<EcsFilter>[capacity];
+            _queriesByIncludedComponents = new List<EcsQuery>[capacity];
+            _queriesByExcludedComponents = new List<EcsQuery>[capacity];
             _poolsCount = 0;
-            // filters.
-            capacity = cfg.Filters > 0 ? cfg.Filters : Config.FiltersDefault;
-            _hashedFilters = new Dictionary<int, EcsFilter>(capacity);
-            _allFilters = new List<EcsFilter>(capacity);
+            // queries.
+            capacity = cfg.Querys > 0 ? cfg.Querys : Config.QuerysDefault;
+            _hashedQuerys = new Dictionary<int, EcsQuery>(capacity);
+            _allQuerys = new List<EcsQuery>(capacity);
             _poolDenseSize = cfg.PoolDenseSize > 0 ? cfg.PoolDenseSize : Config.PoolDenseSizeDefault;
             // resources
             _resources = new Dictionary<Type, object>();
@@ -121,10 +121,10 @@ namespace Bitron.Ecs
             }
             _pools = Array.Empty<IEcsPool>();
             _poolHashes.Clear();
-            _hashedFilters.Clear();
-            _allFilters.Clear();
-            _filtersByIncludedComponents = Array.Empty<List<EcsFilter>>();
-            _filtersByExcludedComponents = Array.Empty<List<EcsFilter>>();
+            _hashedQuerys.Clear();
+            _allQuerys.Clear();
+            _queriesByIncludedComponents = Array.Empty<List<EcsQuery>>();
+            _queriesByExcludedComponents = Array.Empty<List<EcsQuery>>();
             _resources.Clear();
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
             for (var ii = _eventListeners.Count - 1; ii >= 0; ii--)
@@ -161,9 +161,9 @@ namespace Bitron.Ecs
                     {
                         _pools[i].Resize(newSize);
                     }
-                    for (int i = 0, iMax = _allFilters.Count; i < iMax; i++)
+                    for (int i = 0, iMax = _allQuerys.Count; i < iMax; i++)
                     {
-                        _allFilters[i].ResizeSparseIndex(newSize);
+                        _allQuerys[i].ResizeSparseIndex(newSize);
                     }
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
                     for (int ii = 0, iMax = _eventListeners.Count; ii < iMax; ii++)
@@ -271,8 +271,8 @@ namespace Bitron.Ecs
             {
                 var newSize = _poolsCount << 1;
                 Array.Resize(ref _pools, newSize);
-                Array.Resize(ref _filtersByIncludedComponents, newSize);
-                Array.Resize(ref _filtersByExcludedComponents, newSize);
+                Array.Resize(ref _queriesByIncludedComponents, newSize);
+                Array.Resize(ref _queriesByExcludedComponents, newSize);
             }
             _pools[_poolsCount++] = pool;
             return pool;
@@ -311,9 +311,9 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public EcsFilter.Mask Filter<T>() where T : struct
+        public EcsQuery.Mask Query<T>() where T : struct
         {
-            return EcsFilter.Mask.New(this).Inc<T>();
+            return EcsQuery.Mask.New(this).Inc<T>();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -376,83 +376,83 @@ namespace Bitron.Ecs
             return entity >= 0 && entity < _entitiesCount && Entities[entity].Gen > 0;
         }
 
-        internal (EcsFilter, bool) GetFilterInternal(EcsFilter.Mask mask, int capacity = 512)
+        internal (EcsQuery, bool) GetQueryInternal(EcsQuery.Mask mask, int capacity = 512)
         {
             var hash = mask.Hash;
-            var exists = _hashedFilters.TryGetValue(hash, out var filter);
-            if (exists) { return (filter, false); }
-            filter = new EcsFilter(this, mask, capacity, Entities.Length);
-            _hashedFilters[hash] = filter;
-            _allFilters.Add(filter);
+            var exists = _hashedQuerys.TryGetValue(hash, out var query);
+            if (exists) { return (query, false); }
+            query = new EcsQuery(this, mask, capacity, Entities.Length);
+            _hashedQuerys[hash] = query;
+            _allQuerys.Add(query);
             // add to component dictionaries for fast compatibility scan.
             for (int i = 0, iMax = mask.IncludeCount; i < iMax; i++)
             {
-                var list = _filtersByIncludedComponents[mask.Include[i]];
+                var list = _queriesByIncludedComponents[mask.Include[i]];
                 if (list == null)
                 {
-                    list = new List<EcsFilter>(8);
-                    _filtersByIncludedComponents[mask.Include[i]] = list;
+                    list = new List<EcsQuery>(8);
+                    _queriesByIncludedComponents[mask.Include[i]] = list;
                 }
-                list.Add(filter);
+                list.Add(query);
             }
             for (int i = 0, iMax = mask.ExcludeCount; i < iMax; i++)
             {
-                var list = _filtersByExcludedComponents[mask.Exclude[i]];
+                var list = _queriesByExcludedComponents[mask.Exclude[i]];
                 if (list == null)
                 {
-                    list = new List<EcsFilter>(8);
-                    _filtersByExcludedComponents[mask.Exclude[i]] = list;
+                    list = new List<EcsQuery>(8);
+                    _queriesByExcludedComponents[mask.Exclude[i]] = list;
                 }
-                list.Add(filter);
+                list.Add(query);
             }
-            // scan exist entities for compatibility with new filter.
+            // scan exist entities for compatibility with new query.
             for (int i = 0, iMax = _entitiesCount; i < iMax; i++)
             {
                 ref var entityData = ref Entities[i];
                 if (entityData.ComponentsCount > 0 && IsMaskCompatible(mask, i))
                 {
-                    filter.AddEntity(i);
+                    query.AddEntity(i);
                 }
             }
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
             for (int ii = 0, iMax = _eventListeners.Count; ii < iMax; ii++)
             {
-                _eventListeners[ii].OnFilterCreated(filter);
+                _eventListeners[ii].OnQueryCreated(query);
             }
 #endif
-            return (filter, true);
+            return (query, true);
         }
 
         internal void OnEntityChange(int entity, int componentType, bool added)
         {
-            var includeList = _filtersByIncludedComponents[componentType];
-            var excludeList = _filtersByExcludedComponents[componentType];
+            var includeList = _queriesByIncludedComponents[componentType];
+            var excludeList = _queriesByExcludedComponents[componentType];
             if (added)
             {
                 // add component.
                 if (includeList != null)
                 {
-                    foreach (var filter in includeList)
+                    foreach (var query in includeList)
                     {
-                        if (IsMaskCompatible(filter.GetMask(), entity))
+                        if (IsMaskCompatible(query.GetMask(), entity))
                         {
 #if DEBUG
-                            if (filter.SparseEntities[entity] > 0) { throw new Exception("Entity already in filter."); }
+                            if (query.SparseEntities[entity] > 0) { throw new Exception("Entity already in query."); }
 #endif
-                            filter.AddEntity(entity);
+                            query.AddEntity(entity);
                         }
                     }
                 }
                 if (excludeList != null)
                 {
-                    foreach (var filter in excludeList)
+                    foreach (var query in excludeList)
                     {
-                        if (IsMaskCompatibleWithout(filter.GetMask(), entity, componentType))
+                        if (IsMaskCompatibleWithout(query.GetMask(), entity, componentType))
                         {
 #if DEBUG
-                            if (filter.SparseEntities[entity] == 0) { throw new Exception("Entity not in filter."); }
+                            if (query.SparseEntities[entity] == 0) { throw new Exception("Entity not in query."); }
 #endif
-                            filter.RemoveEntity(entity);
+                            query.RemoveEntity(entity);
                         }
                     }
                 }
@@ -462,27 +462,27 @@ namespace Bitron.Ecs
                 // remove component.
                 if (includeList != null)
                 {
-                    foreach (var filter in includeList)
+                    foreach (var query in includeList)
                     {
-                        if (IsMaskCompatible(filter.GetMask(), entity))
+                        if (IsMaskCompatible(query.GetMask(), entity))
                         {
 #if DEBUG
-                            if (filter.SparseEntities[entity] == 0) { throw new Exception("Entity not in filter."); }
+                            if (query.SparseEntities[entity] == 0) { throw new Exception("Entity not in query."); }
 #endif
-                            filter.RemoveEntity(entity);
+                            query.RemoveEntity(entity);
                         }
                     }
                 }
                 if (excludeList != null)
                 {
-                    foreach (var filter in excludeList)
+                    foreach (var query in excludeList)
                     {
-                        if (IsMaskCompatibleWithout(filter.GetMask(), entity, componentType))
+                        if (IsMaskCompatibleWithout(query.GetMask(), entity, componentType))
                         {
 #if DEBUG
-                            if (filter.SparseEntities[entity] > 0) { throw new Exception("Entity already in filter."); }
+                            if (query.SparseEntities[entity] > 0) { throw new Exception("Entity already in query."); }
 #endif
-                            filter.AddEntity(entity);
+                            query.AddEntity(entity);
                         }
                     }
                 }
@@ -490,18 +490,18 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        bool IsMaskCompatible(EcsFilter.Mask filterMask, int entity)
+        bool IsMaskCompatible(EcsQuery.Mask queryMask, int entity)
         {
-            for (int i = 0, iMax = filterMask.IncludeCount; i < iMax; i++)
+            for (int i = 0, iMax = queryMask.IncludeCount; i < iMax; i++)
             {
-                if (!_pools[filterMask.Include[i]].Has(entity))
+                if (!_pools[queryMask.Include[i]].Has(entity))
                 {
                     return false;
                 }
             }
-            for (int i = 0, iMax = filterMask.ExcludeCount; i < iMax; i++)
+            for (int i = 0, iMax = queryMask.ExcludeCount; i < iMax; i++)
             {
-                if (_pools[filterMask.Exclude[i]].Has(entity))
+                if (_pools[queryMask.Exclude[i]].Has(entity))
                 {
                     return false;
                 }
@@ -510,19 +510,19 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        bool IsMaskCompatibleWithout(EcsFilter.Mask filterMask, int entity, int componentId)
+        bool IsMaskCompatibleWithout(EcsQuery.Mask queryMask, int entity, int componentId)
         {
-            for (int i = 0, iMax = filterMask.IncludeCount; i < iMax; i++)
+            for (int i = 0, iMax = queryMask.IncludeCount; i < iMax; i++)
             {
-                var typeId = filterMask.Include[i];
+                var typeId = queryMask.Include[i];
                 if (typeId == componentId || !_pools[typeId].Has(entity))
                 {
                     return false;
                 }
             }
-            for (int i = 0, iMax = filterMask.ExcludeCount; i < iMax; i++)
+            for (int i = 0, iMax = queryMask.ExcludeCount; i < iMax; i++)
             {
-                var typeId = filterMask.Exclude[i];
+                var typeId = queryMask.Exclude[i];
                 if (typeId != componentId && _pools[typeId].Has(entity))
                 {
                     return false;
@@ -536,13 +536,13 @@ namespace Bitron.Ecs
             public int Entities;
             public int RecycledEntities;
             public int Pools;
-            public int Filters;
+            public int Querys;
             public int PoolDenseSize;
 
             internal const int EntitiesDefault = 512;
             internal const int RecycledEntitiesDefault = 512;
             internal const int PoolsDefault = 512;
-            internal const int FiltersDefault = 512;
+            internal const int QuerysDefault = 512;
             internal const int PoolDenseSizeDefault = 512;
         }
 
@@ -559,7 +559,7 @@ namespace Bitron.Ecs
         void OnEntityCreated(int entity);
         void OnEntityChanged(int entity);
         void OnEntityDestroyed(int entity);
-        void OnFilterCreated(EcsFilter filter);
+        void OnQueryCreated(EcsQuery query);
         void OnWorldResized(int newSize);
         void OnWorldDestroyed(EcsWorld world);
     }
