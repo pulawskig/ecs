@@ -8,10 +8,6 @@
 
 using System.Runtime.CompilerServices;
 
-#if ENABLE_IL2CPP
-using Unity.IL2CPP.CompilerServices;
-#endif
-
 namespace Bitron.Ecs
 {
     public struct EcsPackedEntity
@@ -74,10 +70,6 @@ namespace Bitron.Ecs
 #endif
     }
 
-#if ENABLE_IL2CPP
-    [Il2CppSetOption (Option.NullChecks, false)]
-    [Il2CppSetOption (Option.ArrayBoundsChecks, false)]
-#endif
     public static class EcsEntityExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

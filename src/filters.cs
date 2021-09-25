@@ -9,10 +9,6 @@
 using System;
 using System.Runtime.CompilerServices;
 
-#if ENABLE_IL2CPP
-using Unity.IL2CPP.CompilerServices;
-#endif
-
 namespace Bitron.Ecs
 {
 #if LEOECSLITE_FILTER_EVENTS
@@ -20,10 +16,6 @@ namespace Bitron.Ecs
         void OnEntityAdded (int entity);
         void OnEntityRemoved (int entity);
     }
-#endif
-#if ENABLE_IL2CPP
-    [Il2CppSetOption (Option.NullChecks, false)]
-    [Il2CppSetOption (Option.ArrayBoundsChecks, false)]
 #endif
     public sealed class EcsFilter
     {
@@ -244,10 +236,6 @@ namespace Bitron.Ecs
             }
         }
 
-#if ENABLE_IL2CPP
-    [Il2CppSetOption (Option.NullChecks, false)]
-    [Il2CppSetOption (Option.ArrayBoundsChecks, false)]
-#endif
         public sealed class Mask
         {
             EcsWorld _world;

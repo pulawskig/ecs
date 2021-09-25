@@ -10,16 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-#if ENABLE_IL2CPP
-using Unity.IL2CPP.CompilerServices;
-#endif
-
 namespace Bitron.Ecs
 {
-#if ENABLE_IL2CPP
-    [Il2CppSetOption (Option.NullChecks, false)]
-    [Il2CppSetOption (Option.ArrayBoundsChecks, false)]
-#endif
     public sealed class EcsWorld
     {
         internal EntityData[] Entities;
@@ -34,6 +26,7 @@ namespace Bitron.Ecs
         readonly List<EcsFilter> _allFilters;
         List<EcsFilter>[] _filtersByIncludedComponents;
         List<EcsFilter>[] _filtersByExcludedComponents;
+        Dictionary<Type, object> _resources;
         bool _destroyed;
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
         List<IEcsWorldEventListener> _eventListeners;
@@ -104,6 +97,8 @@ namespace Bitron.Ecs
             _hashedFilters = new Dictionary<int, EcsFilter>(capacity);
             _allFilters = new List<EcsFilter>(capacity);
             _poolDenseSize = cfg.PoolDenseSize > 0 ? cfg.PoolDenseSize : Config.PoolDenseSizeDefault;
+            // resources
+            _resources = new Dictionary<Type, object>();
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
             _eventListeners = new List<IEcsWorldEventListener>(4);
 #endif
@@ -130,6 +125,7 @@ namespace Bitron.Ecs
             _allFilters.Clear();
             _filtersByIncludedComponents = Array.Empty<List<EcsFilter>>();
             _filtersByExcludedComponents = Array.Empty<List<EcsFilter>>();
+            _resources.Clear();
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
             for (var ii = _eventListeners.Count - 1; ii >= 0; ii--)
             {
@@ -318,6 +314,24 @@ namespace Bitron.Ecs
         public EcsFilter.Mask Filter<T>() where T : struct
         {
             return EcsFilter.Mask.New(this).Inc<T>();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddResource<T>(T resource) where T : struct
+        {
+            _resources.Add(typeof(T), resource);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T GetResource<T>() where T : struct
+        {
+            return (T)_resources[typeof(T)];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveResource<T>() where T : struct
+        {
+            _resources.Remove(typeof(T));
         }
 
         public int GetComponents(int entity, ref object[] list)
@@ -551,21 +565,3 @@ namespace Bitron.Ecs
     }
 #endif
 }
-
-#if ENABLE_IL2CPP
-// Unity IL2CPP performance optimization attribute.
-namespace Unity.IL2CPP.CompilerServices {
-    enum Option {
-        NullChecks = 1,
-        ArrayBoundsChecks = 2
-    }
-
-    [AttributeUsage (AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
-    class Il2CppSetOptionAttribute : Attribute {
-        public Option Option { get; private set; }
-        public object Value { get; private set; }
-
-        public Il2CppSetOptionAttribute (Option option, object value) { Option = option; Value = value; }
-    }
-}
-#endif

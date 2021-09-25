@@ -9,10 +9,6 @@
 using System;
 using System.Runtime.CompilerServices;
 
-#if ENABLE_IL2CPP
-using Unity.IL2CPP.CompilerServices;
-#endif
-
 namespace Bitron.Ecs
 {
     public interface IEcsPool
@@ -31,10 +27,6 @@ namespace Bitron.Ecs
         void AutoReset(ref T c);
     }
 
-#if ENABLE_IL2CPP
-    [Il2CppSetOption (Option.NullChecks, false)]
-    [Il2CppSetOption (Option.ArrayBoundsChecks, false)]
-#endif
     public sealed class EcsPool<T> : IEcsPool where T : struct
     {
         readonly Type _type;
@@ -47,9 +39,6 @@ namespace Bitron.Ecs
         int _denseItemsCount;
         int[] _recycledItems;
         int _recycledItemsCount;
-#if ENABLE_IL2CPP && !UNITY_EDITOR
-        T _autoresetFakeInstance;
-#endif
 
         internal EcsPool(EcsWorld world, int id, int denseCapacity, int sparseCapacity)
         {
@@ -80,11 +69,7 @@ namespace Bitron.Ecs
 #endif
                 _autoReset = (AutoResetHandler)Delegate.CreateDelegate(
                     typeof(AutoResetHandler),
-#if ENABLE_IL2CPP && !UNITY_EDITOR
-                    _autoresetFakeInstance,
-#else
                     null,
-#endif
                     autoResetMethod);
             }
         }
