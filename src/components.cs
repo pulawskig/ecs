@@ -74,9 +74,6 @@ namespace Bitron.Ecs
             }
         }
 
-#if UNITY_2020_3_OR_NEWER
-        [UnityEngine.Scripting.Preserve]
-#endif
         void ReflectionSupportHack()
         {
             _world.GetPool<T>();
