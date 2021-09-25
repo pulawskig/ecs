@@ -1,6 +1,8 @@
 // ----------------------------------------------------------------------------
 // The MIT License
-// Lightweight ECS framework https://github.com/Leopotam/ecslite
+// Lightweight ECS framework https://github.com/Byteron/ecs
+// based on https://github.com/Leopotam/ecslite
+// Copyright (c) 2021 Aaron Winter <winter.aaron93@gmail.com>
 // Copyright (c) 2021 Leopotam <leopotam@gmail.com>
 // ----------------------------------------------------------------------------
 
@@ -12,7 +14,7 @@ using System.Runtime.CompilerServices;
 using Unity.IL2CPP.CompilerServices;
 #endif
 
-namespace Leopotam.EcsLite
+namespace Bitron.Ecs
 {
 #if ENABLE_IL2CPP
     [Il2CppSetOption (Option.NullChecks, false)]

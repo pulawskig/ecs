@@ -1,5 +1,6 @@
 MIT License
 
+Copyright (c) 2021 Aaron Winter <winter.aaron93@gmail.com>
 Copyright (c) 2021 Leopotam <leopotam@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
