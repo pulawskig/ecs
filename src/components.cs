@@ -206,7 +206,7 @@ namespace Bitron.Ecs
 #endif
                 if (entityData.ComponentsCount == 0)
                 {
-                    _world.DelEntity(entity);
+                    _world.DestroyEntity(entity);
                 }
             }
         }

@@ -116,7 +116,7 @@ namespace Bitron.Ecs
                 ref var entityData = ref Entities[i];
                 if (entityData.ComponentsCount > 0)
                 {
-                    DelEntity(i);
+                    DestroyEntity(i);
                 }
             }
             _pools = Array.Empty<IEcsPool>();
@@ -140,7 +140,7 @@ namespace Bitron.Ecs
             return !_destroyed;
         }
 
-        public int NewEntity()
+        public int CreateEntity()
         {
             int entity;
             if (_recycledEntitiesCount > 0)
@@ -187,7 +187,7 @@ namespace Bitron.Ecs
             return entity;
         }
 
-        public void DelEntity(int entity)
+        public void DestroyEntity(int entity)
         {
 #if DEBUG
             if (entity < 0 || entity >= _entitiesCount)
