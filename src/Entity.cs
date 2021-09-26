@@ -89,6 +89,13 @@ namespace Bitron.Ecs
             _entity = entity;
         }
 
+        public EcsEntityRef Add<T>() where T : struct
+        {
+            var pool = _world.GetPool<T>();
+            pool.Add(_entity);
+            return this;
+        }
+
         public EcsEntityRef Add<T>(T component) where T : struct
         {
             var pool = _world.GetPool<T>();
@@ -96,7 +103,7 @@ namespace Bitron.Ecs
             return this;
         }
 
-        public EcsEntityRef Remove<T>(T component) where T : struct
+        public EcsEntityRef Remove<T>() where T : struct
         {
             var pool = _world.GetPool<T>();
             pool.Del(_entity);
