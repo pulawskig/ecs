@@ -568,13 +568,13 @@ namespace Bitron.Ecs
     public static class EcsWorldExtentions
     {
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public static EcsEntityRef Spawn(this EcsWorld world) where T: struct
+        public static EcsEntityRef Spawn(this EcsWorld world)
         {
             return new EcsEntityRef(world);
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public static EcsEntityRef Entity(this EcsWorld world, int entity) where T: struct
+        public static EcsEntityRef Entity(this EcsWorld world, int entity)
         {
             return new EcsEntityRef(world, entity);
         }
