@@ -140,7 +140,7 @@ namespace Bitron.Ecs
             return !_destroyed;
         }
 
-        public int CreateEntity()
+        internal int CreateEntity()
         {
             int entity;
             if (_recycledEntitiesCount > 0)
@@ -187,7 +187,7 @@ namespace Bitron.Ecs
             return entity;
         }
 
-        public void DestroyEntity(int entity)
+        internal void DestroyEntity(int entity)
         {
 #if DEBUG
             if (entity < 0 || entity >= _entitiesCount)

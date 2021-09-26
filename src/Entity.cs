@@ -76,7 +76,7 @@ namespace Bitron.Ecs
         EcsWorld _world;
 
         private EcsEntityRef() { }
-        
+
         internal EcsEntityRef(EcsWorld world)
         {
             _world = world;
@@ -101,6 +101,11 @@ namespace Bitron.Ecs
             var pool = _world.GetPool<T>();
             pool.Del(_entity);
             return this;
+        }
+
+        public void Destroy()
+        {
+            _world.DestroyEntity(_entity);
         }
 
         public int Entity()
@@ -162,10 +167,11 @@ namespace Bitron.Ecs
             return true;
         }
 
-        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsAlive(this EcsPackedEntityWithWorld packedEntity)
         {
-            if (packedEntity.World == null || !packedEntity.World.IsAlive () || !packedEntity.World.IsEntityAliveInternal (packedEntity.Id) || packedEntity.World.GetEntityGen (packedEntity.Id) != packedEntity.Gen) {
+            if (packedEntity.World == null || !packedEntity.World.IsAlive() || !packedEntity.World.IsEntityAliveInternal(packedEntity.Id) || packedEntity.World.GetEntityGen(packedEntity.Id) != packedEntity.Gen)
+            {
                 return false;
             }
             return true;
