@@ -264,7 +264,7 @@ namespace Bitron.Ecs
             return Entities.Length;
         }
 
-        public EcsPool<T> GetPool<T>() where T : struct
+        internal EcsPool<T> GetPool<T>() where T : struct
         {
             var poolType = typeof(T);
             if (_poolHashes.TryGetValue(poolType, out var rawPool))
@@ -285,13 +285,13 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IEcsPool GetPoolById(int typeId)
+        internal IEcsPool GetPoolById(int typeId)
         {
             return typeId >= 0 && typeId < _poolsCount ? _pools[typeId] : null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IEcsPool GetPoolByType(Type type)
+        internal IEcsPool GetPoolByType(Type type)
         {
             return _poolHashes.TryGetValue(type, out var pool) ? pool : null;
         }

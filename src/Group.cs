@@ -20,6 +20,11 @@ namespace Bitron.Ecs
         IEcsSystem[] _destroySystems;
         IEcsSystem[] _postDestroySystems;
 
+        public EcsSystemGroup Add(IEcsSystem system)
+        {
+            return Add(EcsSystemType.Run, system);
+        }
+
         public EcsSystemGroup Add(EcsSystemType systemType, IEcsSystem system)
         {
             if (_allSystems.TryGetValue(systemType, out var systemList))
@@ -32,7 +37,6 @@ namespace Bitron.Ecs
             _allSystems.Add(systemType, systemList);
             return this;
         }
-
 
         public void Init(EcsWorld world)
         {
