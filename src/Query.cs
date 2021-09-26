@@ -44,6 +44,12 @@ namespace Bitron.Ecs
             _lockCount = 0;
         }
 
+        public T Get<T>(int entity) where T : struct
+        {
+            var pool = _world.GetPool<T>();
+            return pool.Get(entity);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EcsWorld GetWorld()
         {
