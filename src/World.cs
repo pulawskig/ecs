@@ -27,7 +27,6 @@ namespace Bitron.Ecs
         readonly List<EcsQuery> _allQuerys;
         List<EcsQuery>[] _queriesByIncludedComponents;
         List<EcsQuery>[] _queriesByExcludedComponents;
-        Dictionary<Type, object> _resources;
         bool _destroyed;
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
         List<IEcsWorldEventListener> _eventListeners;
@@ -103,8 +102,6 @@ namespace Bitron.Ecs
             _hashedQuerys = new Dictionary<int, EcsQuery>(capacity);
             _allQuerys = new List<EcsQuery>(capacity);
             _poolDenseSize = cfg.PoolDenseSize > 0 ? cfg.PoolDenseSize : Config.PoolDenseSizeDefault;
-            // resources
-            _resources = new Dictionary<Type, object>();
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
             _eventListeners = new List<IEcsWorldEventListener>(4);
 #endif
@@ -122,7 +119,7 @@ namespace Bitron.Ecs
                 ref var entityData = ref Entities[i];
                 if (entityData.ComponentsCount > 0)
                 {
-                    DestroyEntity(i);
+                    DespawnEntity(i);
                 }
             }
             _pools = Array.Empty<IEcsPool>();
@@ -131,7 +128,6 @@ namespace Bitron.Ecs
             _allQuerys.Clear();
             _queriesByIncludedComponents = Array.Empty<List<EcsQuery>>();
             _queriesByExcludedComponents = Array.Empty<List<EcsQuery>>();
-            _resources.Clear();
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
             for (var ii = _eventListeners.Count - 1; ii >= 0; ii--)
             {
@@ -146,7 +142,7 @@ namespace Bitron.Ecs
             return !_destroyed;
         }
 
-        internal int CreateEntity()
+        public int SpawnEntity()
         {
             int entity;
             if (_recycledEntitiesCount > 0)
@@ -193,7 +189,7 @@ namespace Bitron.Ecs
             return entity;
         }
 
-        internal void DestroyEntity(int entity)
+        public void DespawnEntity(int entity)
         {
 #if DEBUG
             if (entity < 0 || entity >= _entitiesCount)
@@ -264,7 +260,7 @@ namespace Bitron.Ecs
             return Entities.Length;
         }
 
-        internal EcsPool<T> GetPool<T>() where T : struct
+        public EcsPool<T> GetPool<T>() where T : struct
         {
             var poolType = typeof(T);
             if (_poolHashes.TryGetValue(poolType, out var rawPool))
@@ -285,13 +281,13 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal IEcsPool GetPoolById(int typeId)
+        public IEcsPool GetPoolById(int typeId)
         {
             return typeId >= 0 && typeId < _poolsCount ? _pools[typeId] : null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal IEcsPool GetPoolByType(Type type)
+        public IEcsPool GetPoolByType(Type type)
         {
             return _poolHashes.TryGetValue(type, out var pool) ? pool : null;
         }
@@ -320,24 +316,6 @@ namespace Bitron.Ecs
         public EcsQuery.Mask Query<T>() where T : struct
         {
             return EcsQuery.Mask.New(this).Inc<T>();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddResource<T>(T resource) where T : struct
-        {
-            _resources.Add(typeof(T), resource);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T GetResource<T>() where T : struct
-        {
-            return (T)_resources[typeof(T)];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveResource<T>() where T : struct
-        {
-            _resources.Remove(typeof(T));
         }
 
         public int GetComponents(int entity, ref object[] list)
@@ -583,6 +561,57 @@ namespace Bitron.Ecs
         public static EcsEntityRef Entity(this EcsWorld world, int entity)
         {
             return new EcsEntityRef(world, entity);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AddResource<T>(this EcsWorld world, T resource) where T : struct
+        {
+            if (world.Query<T>().End().GetEntitiesCount() > 0)
+            {
+                return;
+            }
+
+            world.Spawn().Add<T>();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T GetResource<T>(this EcsWorld world) where T : struct
+        {
+            var query = world.Query<T>().End();
+
+#if DEBUG
+            if (query.GetEntitiesCount() == 0)
+            {
+                throw new Exception($"GetResource<{typeof(T).Name}> no resource of that type exists.");
+            }
+#endif
+
+            int entity = 0;
+            foreach (var e in query)
+            {
+                entity = e;
+                break;
+            }
+
+            return ref query.Get<T>(entity);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void RemoveResource<T>(this EcsWorld world) where T : struct
+        {
+            var query = world.Query<T>().End();
+
+#if DEBUG
+            if (query.GetEntitiesCount() == 0)
+            {
+                throw new Exception($"RemoveResource<{typeof(T).Name}> no resource of that type exists.");
+            }
+#endif
+
+            foreach (var entity in query)
+            {
+                world.Entity(entity).Remove<T>();
+            }
         }
     }
 }

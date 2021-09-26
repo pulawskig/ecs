@@ -80,7 +80,7 @@ namespace Bitron.Ecs
         internal EcsEntityRef(EcsWorld world)
         {
             _world = world;
-            _entity = world.CreateEntity();
+            _entity = world.SpawnEntity();
         }
 
         internal EcsEntityRef(EcsWorld world, int entity)
@@ -112,7 +112,7 @@ namespace Bitron.Ecs
 
         public void Destroy()
         {
-            _world.DestroyEntity(_entity);
+            _world.DespawnEntity(_entity);
         }
 
         public int Entity()
