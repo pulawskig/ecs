@@ -22,7 +22,7 @@ namespace Bitron.Ecs
     {
         readonly EcsWorld _world;
         readonly Mask _mask;
-        Dictionary<Type, IEcsPool> _pools = new Dictionary<Type, IEcsPool>();
+
         int[] _denseEntities;
         int _entitiesCount;
         internal int[] SparseEntities;
@@ -46,17 +46,11 @@ namespace Bitron.Ecs
             _lockCount = 0;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T Get<T>(int entity) where T : struct
         {
-            if (_pools.TryGetValue(typeof(T), out var pool))
-            {
-                return ref (pool as EcsPool<T>).Get(entity);
-            }
-            
-            pool = _world.GetPool<T>();
-            _pools.Add(typeof(T), pool);
-
-            return ref (pool as EcsPool<T>).Get(entity);
+            var pool = _world.GetPool<T>();
+            return ref pool.Get(entity);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
