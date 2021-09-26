@@ -13,12 +13,12 @@ namespace Bitron.Ecs
 
     public sealed class EcsSystemGroup
     {
-        Dictionary<EcsSystemType, List<IEcsSystem>> _allSystems;
-        IEcsSystem[] _preInitSystems;
-        IEcsSystem[] _initSystems;
-        IEcsSystem[] _runSystems;
-        IEcsSystem[] _destroySystems;
-        IEcsSystem[] _postDestroySystems;
+        Dictionary<EcsSystemType, List<IEcsSystem>> _allSystems = new Dictionary<EcsSystemType, List<IEcsSystem>>();
+        IEcsSystem[] _preInitSystems = new IEcsSystem[0];
+        IEcsSystem[] _initSystems = new IEcsSystem[0];
+        IEcsSystem[] _runSystems = new IEcsSystem[0];
+        IEcsSystem[] _destroySystems = new IEcsSystem[0];
+        IEcsSystem[] _postDestroySystems = new IEcsSystem[0];
 
         public EcsSystemGroup Add(IEcsSystem system)
         {
@@ -31,10 +31,13 @@ namespace Bitron.Ecs
             {
                 systemList.Add(system);
             }
-            
-            systemList = new List<IEcsSystem>();
-            systemList.Add(system);
-            _allSystems.Add(systemType, systemList);
+            else
+            {
+                systemList = new List<IEcsSystem>();
+                systemList.Add(system);
+                _allSystems.Add(systemType, systemList);
+            }
+
             return this;
         }
 
