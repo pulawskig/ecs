@@ -70,6 +70,45 @@ namespace Bitron.Ecs
 #endif
     }
 
+    public class EcsEntityRef
+    {
+        int _entity;
+        EcsWorld _world;
+
+        private EcsEntityRef() { }
+        
+        internal EcsEntityRef(EcsWorld world)
+        {
+            _world = world;
+            _entity = world.CreateEntity();
+        }
+
+        internal EcsEntityRef(EcsWorld world, int entity)
+        {
+            _world = world;
+            _entity = entity;
+        }
+
+        public EcsEntityRef Add<T>(T component) where T : struct
+        {
+            var pool = _world.GetPool<T>();
+            pool.Add(_entity) = component;
+            return this;
+        }
+
+        public EcsEntityRef Remove<T>(T component) where T : struct
+        {
+            var pool = _world.GetPool<T>();
+            pool.Del(_entity);
+            return this;
+        }
+
+        public int Entity()
+        {
+            return _entity;
+        }
+    }
+
     public static class EcsEntityExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -120,6 +159,15 @@ namespace Bitron.Ecs
             }
             world = packedEntity.World;
             entity = packedEntity.Id;
+            return true;
+        }
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static bool IsAlive(this EcsPackedEntityWithWorld packedEntity)
+        {
+            if (packedEntity.World == null || !packedEntity.World.IsAlive () || !packedEntity.World.IsEntityAliveInternal (packedEntity.Id) || packedEntity.World.GetEntityGen (packedEntity.Id) != packedEntity.Gen) {
+                return false;
+            }
             return true;
         }
 
