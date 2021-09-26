@@ -14,6 +14,7 @@ namespace Bitron.Ecs
 {
     public sealed class EcsWorld
     {
+        internal string Name = "Default";
         internal EntityData[] Entities;
         int _entitiesCount;
         int[] _recycledEntities;
@@ -76,6 +77,11 @@ namespace Bitron.Ecs
         }
 #endif
 
+        public EcsWorld(string name, in Config cfg = default) : this(cfg)
+        {
+            Name = name;
+        }
+        
         public EcsWorld(in Config cfg = default)
         {
             // entities.

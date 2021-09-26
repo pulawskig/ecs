@@ -70,7 +70,7 @@ namespace Bitron.Ecs
 #endif
     }
 
-    public class EcsEntityRef
+    public sealed class EcsEntityRef
     {
         int _entity;
         EcsWorld _world;
