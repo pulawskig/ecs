@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 
 namespace Bitron.Ecs.Resources
 {
-    internal struct Res<T> where T : class
+    internal struct Res<T> where T : struct
     {
         public T Value;
 
@@ -24,7 +24,7 @@ namespace Bitron.Ecs.Resources
     public static class EcsWorldExtentions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AddResource<T>(this EcsWorld world, T resource) where T : class
+        public static void AddResource<T>(this EcsWorld world, T resource) where T : struct
         {
             if (world.Query<Res<T>>().End().GetEntitiesCount() > 0)
             {
@@ -41,7 +41,7 @@ namespace Bitron.Ecs.Resources
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref T GetResource<T>(this EcsWorld world) where T : class
+        public static ref T GetResource<T>(this EcsWorld world) where T : struct
         {
             var query = world.Query<Res<T>>().End();
 
@@ -63,7 +63,7 @@ namespace Bitron.Ecs.Resources
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RemoveResource<T>(this EcsWorld world) where T : class
+        public static void RemoveResource<T>(this EcsWorld world) where T : struct
         {
             var query = world.Query<Res<T>>().End();
 
