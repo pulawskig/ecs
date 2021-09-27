@@ -562,56 +562,5 @@ namespace Bitron.Ecs
         {
             return new EcsEntityRef(world, entity);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AddResource<T>(this EcsWorld world, T resource) where T : struct
-        {
-            if (world.Query<T>().End().GetEntitiesCount() > 0)
-            {
-                return;
-            }
-
-            world.Spawn().Add<T>();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref T GetResource<T>(this EcsWorld world) where T : struct
-        {
-            var query = world.Query<T>().End();
-
-#if DEBUG
-            if (query.GetEntitiesCount() == 0)
-            {
-                throw new Exception($"GetResource<{typeof(T).Name}> no resource of that type exists.");
-            }
-#endif
-
-            int entity = 0;
-            foreach (var e in query)
-            {
-                entity = e;
-                break;
-            }
-
-            return ref query.Get<T>(entity);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RemoveResource<T>(this EcsWorld world) where T : struct
-        {
-            var query = world.Query<T>().End();
-
-#if DEBUG
-            if (query.GetEntitiesCount() == 0)
-            {
-                throw new Exception($"RemoveResource<{typeof(T).Name}> no resource of that type exists.");
-            }
-#endif
-
-            foreach (var entity in query)
-            {
-                world.Entity(entity).Remove<T>();
-            }
-        }
     }
 }
