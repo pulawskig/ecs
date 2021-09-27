@@ -29,6 +29,8 @@ namespace Bitron.Ecs
         int _lockCount;
         DelayedOp[] _delayedOps;
         int _delayedOpsCount;
+        Dictionary<Type, IEcsPool> _pools;
+
 #if LEOECSLITE_FILTER_EVENTS
         IEcsQueryEventListener[] _eventListeners = new IEcsQueryEventListener[4];
         int _eventListenersCount;
@@ -44,13 +46,27 @@ namespace Bitron.Ecs
             _delayedOps = new DelayedOp[512];
             _delayedOpsCount = 0;
             _lockCount = 0;
+
+            _pools = new Dictionary<Type, IEcsPool>(_mask.IncludeCount);
+
+            for(int i = 0; i < _mask.IncludeCount; i++)
+            {
+                var poolId = _mask.Include[i];
+                var pool = _world.GetPoolById(poolId);
+                _pools.Add(pool.GetComponentType(), pool);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T Get<T>(int entity) where T : struct
         {
-            var pool = _world.GetPool<T>();
-            return ref pool.Get(entity);
+            return ref GetPool<T>().Get(entity);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public EcsPool<T> GetPool<T>() where T : struct
+        {
+            return (EcsPool<T>)_pools[typeof(T)];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
