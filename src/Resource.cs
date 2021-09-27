@@ -27,14 +27,20 @@ namespace Bitron.Ecs.Resources
         {
             if (world.Query<Res<T>>().End().GetEntitiesCount() > 0)
             {
-                return;
+#if DEBUG
+                throw new Exception($"AddResource<{typeof(T).Name}> resource of that type already exists.");
+#else
+                world.GetResource<T>() = resource;
+#endif
             }
-
-            world.Spawn().Add<Res<T>>();
+            else
+            {
+                world.Spawn().Add<Res<T>>();
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T GetResource<T>(this EcsWorld world) where T : class
+        public static ref T GetResource<T>(this EcsWorld world) where T : class
         {
             var query = world.Query<Res<T>>().End();
 
@@ -52,13 +58,13 @@ namespace Bitron.Ecs.Resources
                 break;
             }
 
-            return query.Get<Res<T>>(entity).Value;
+            return ref query.Get<Res<T>>(entity).Value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RemoveResource<T>(this EcsWorld world) where T : struct
+        public static void RemoveResource<T>(this EcsWorld world) where T : class
         {
-            var query = world.Query<T>().End();
+            var query = world.Query<Res<T>>().End();
 
 #if DEBUG
             if (query.GetEntitiesCount() == 0)
@@ -69,7 +75,7 @@ namespace Bitron.Ecs.Resources
 
             foreach (var entity in query)
             {
-                world.Entity(entity).Remove<T>();
+                world.Entity(entity).Remove<Res<T>>();
             }
         }
     }
