@@ -51,14 +51,14 @@ namespace Bitron.Ecs
 
         public void Init(EcsWorld world)
         {
-            foreach(var pair in _allSystems)
+            foreach (var pair in _allSystems)
             {
                 var systemType = pair.Key;
                 var systemList = pair.Value;
 
                 IEcsSystem[] systemArray = null;
 
-                switch(systemType)
+                switch (systemType)
                 {
                     case EcsSystemType.PreInit:
                         systemArray = _preInitSystems = new IEcsSystem[systemList.Count];
@@ -77,7 +77,7 @@ namespace Bitron.Ecs
                         break;
                 }
 
-                for(int i = 0; i < systemList.Count; i++)
+                for (int i = 0; i < systemList.Count; i++)
                 {
                     systemArray[i] = systemList[i];
                 }
@@ -102,7 +102,7 @@ namespace Bitron.Ecs
 
         public void Run(EcsWorld world)
         {
-            foreach(var system in _runSystems)
+            foreach (var system in _runSystems)
             {
                 system.Run(world);
 #if DEBUG
@@ -113,7 +113,7 @@ namespace Bitron.Ecs
 
         public void Destroy(EcsWorld world)
         {
-            foreach(var system in _destroySystems)
+            foreach (var system in _destroySystems)
             {
                 system.Run(world);
 #if DEBUG
@@ -121,7 +121,7 @@ namespace Bitron.Ecs
 #endif
             }
 
-            foreach(var system in _postDestroySystems)
+            foreach (var system in _postDestroySystems)
             {
                 system.Run(world);
 #if DEBUG

@@ -11,7 +11,8 @@ using System.Runtime.CompilerServices;
 
 namespace Bitron.Ecs.Resources
 {
-    internal struct Res<T> where T : class {
+    internal struct Res<T> where T : class
+    {
         public T Value;
 
         public Res(T value)

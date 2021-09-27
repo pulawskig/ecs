@@ -80,7 +80,7 @@ namespace Bitron.Ecs
         {
             Name = name;
         }
-        
+
         public EcsWorld(in Config cfg = default)
         {
             // entities.
@@ -551,13 +551,13 @@ namespace Bitron.Ecs
 
     public static class EcsWorldExtentions
     {
-        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static EcsEntityRef Spawn(this EcsWorld world)
         {
             return new EcsEntityRef(world);
         }
 
-        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static EcsEntityRef Entity(this EcsWorld world, int entity)
         {
             return new EcsEntityRef(world, entity);
