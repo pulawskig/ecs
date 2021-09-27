@@ -106,7 +106,7 @@ namespace Bitron.Ecs
         public EcsEntityRef Remove<T>() where T : struct
         {
             var pool = _world.GetPool<T>();
-            pool.Del(_entity);
+            pool.Remove(_entity);
             return this;
         }
 

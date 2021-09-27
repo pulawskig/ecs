@@ -212,7 +212,7 @@ namespace Bitron.Ecs
                     {
                         if (_pools[idx].Has(entity))
                         {
-                            _pools[idx++].Del(entity);
+                            _pools[idx++].Remove(entity);
                             break;
                         }
                     }

@@ -15,7 +15,7 @@ namespace Bitron.Ecs
     {
         void Resize(int capacity);
         bool Has(int entity);
-        void Del(int entity);
+        void Remove(int entity);
         void AddRaw(int entity, object dataRaw);
         object GetRaw(int entity);
         int GetId();
@@ -176,7 +176,7 @@ namespace Bitron.Ecs
             return _sparseItems[entity] > 0;
         }
 
-        public void Del(int entity)
+        public void Remove(int entity)
         {
 #if DEBUG
             if (!_world.IsEntityAliveInternal(entity)) { throw new Exception("Cant touch destroyed entity."); }
