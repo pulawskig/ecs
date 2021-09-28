@@ -554,19 +554,4 @@ namespace Bitron.Ecs
         void OnWorldDestroyed(EcsWorld world);
     }
 #endif
-
-    public static class EcsWorldExtentions
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EcsEntityRef Spawn(this EcsWorld world)
-        {
-            return new EcsEntityRef(world);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EcsEntityRef Entity(this EcsWorld world, int entity)
-        {
-            return new EcsEntityRef(world, entity);
-        }
-    }
 }

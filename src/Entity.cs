@@ -10,13 +10,7 @@ using System.Runtime.CompilerServices;
 
 namespace Bitron.Ecs
 {
-    public struct EcsPackedEntity
-    {
-        internal int Id;
-        internal int Gen;
-    }
-
-    public struct EcsPackedEntityWithWorld
+    public struct EcsEntity
     {
         internal int Id;
         internal int Gen;
@@ -70,134 +64,91 @@ namespace Bitron.Ecs
 #endif
     }
 
-    public sealed class EcsEntityRef
-    {
-        int _entity;
-        EcsWorld _world;
-
-        private EcsEntityRef() { }
-
-        internal EcsEntityRef(EcsWorld world)
-        {
-            _world = world;
-            _entity = world.SpawnEntity();
-        }
-
-        internal EcsEntityRef(EcsWorld world, int entity)
-        {
-            _world = world;
-            _entity = entity;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public EcsEntityRef Add<T>() where T : struct
-        {
-            var pool = _world.GetPool<T>();
-            pool.Add(_entity);
-            return this;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T Get<T>() where T : struct
-        {
-            var pool = _world.GetPool<T>();
-            return ref pool.Get(_entity);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public EcsEntityRef Add<T>(T component) where T : struct
-        {
-            var pool = _world.GetPool<T>();
-            pool.Add(_entity) = component;
-            return this;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public EcsEntityRef Remove<T>() where T : struct
-        {
-            var pool = _world.GetPool<T>();
-            pool.Remove(_entity);
-            return this;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Destroy()
-        {
-            _world.DespawnEntity(_entity);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Entity()
-        {
-            return _entity;
-        }
-    }
-
     public static class EcsEntityExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EcsPackedEntity PackEntity(this EcsWorld world, int entity)
+        public static EcsEntity Spawn(this EcsWorld world)
         {
-            EcsPackedEntity packed;
-            packed.Id = entity;
-            packed.Gen = world.GetEntityGen(entity);
-            return packed;
+            var entity = new EcsEntity();
+            entity.Id = world.SpawnEntity();
+            entity.Gen = world.GetEntityGen(entity.Id);
+            entity.World = world;
+            return entity;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Unpack(this in EcsPackedEntity packed, EcsWorld world, out int entity)
+        public static EcsEntity Entity(this EcsWorld world, int entityId)
         {
-            if (!world.IsAlive() || !world.IsEntityAliveInternal(packed.Id) || world.GetEntityGen(packed.Id) != packed.Gen)
+            EcsEntity entity;
+            entity.World = world;
+            entity.Id = entityId;
+            entity.Gen = world.GetEntityGen(entityId);
+            return entity;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static EcsEntity Add<T>(this in EcsEntity entity) where T : struct
+        {
+            var pool = entity.World.GetPool<T>();
+            pool.Add(entity.Id);
+            return entity;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T Get<T>(this in EcsEntity entity) where T : struct
+        {
+            var pool = entity.World.GetPool<T>();
+            return ref pool.Get(entity.Id);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static EcsEntity Add<T>(this in EcsEntity entity, T component) where T : struct
+        {
+            var pool = entity.World.GetPool<T>();
+            pool.Add(entity.Id) = component;
+            return entity;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static EcsEntity Remove<T>(this in EcsEntity entity) where T : struct
+        {
+            var pool = entity.World.GetPool<T>();
+            pool.Remove(entity.Id);
+            return entity;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsAlive(this in EcsEntity entity)
+        {
+            if (entity.World == null 
+                || !entity.World.IsAlive() 
+                || !entity.World.IsEntityAliveInternal(entity.Id) 
+                || entity.World.GetEntityGen(entity.Id) != entity.Gen)
             {
-                entity = -1;
                 return false;
             }
-            entity = packed.Id;
             return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool EqualsTo(this in EcsPackedEntity a, in EcsPackedEntity b)
+        public static int Id(this in EcsEntity entity)
         {
-            return a.Id == b.Id && a.Gen == b.Gen;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EcsPackedEntityWithWorld PackEntityWithWorld(this EcsWorld world, int entity)
-        {
-            EcsPackedEntityWithWorld packedEntity;
-            packedEntity.World = world;
-            packedEntity.Id = entity;
-            packedEntity.Gen = world.GetEntityGen(entity);
-            return packedEntity;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Unpack(this in EcsPackedEntityWithWorld packedEntity, out EcsWorld world, out int entity)
-        {
-            if (packedEntity.World == null || !packedEntity.World.IsAlive() || !packedEntity.World.IsEntityAliveInternal(packedEntity.Id) || packedEntity.World.GetEntityGen(packedEntity.Id) != packedEntity.Gen)
+            if (!entity.IsAlive())
             {
-                world = null;
-                entity = -1;
-                return false;
+                return -1;
             }
-            world = packedEntity.World;
-            entity = packedEntity.Id;
-            return true;
+
+            return entity.Id;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAlive(this EcsPackedEntityWithWorld packedEntity)
+        public static void Destroy(this in EcsEntity entity)
         {
-            if (packedEntity.World == null || !packedEntity.World.IsAlive() || !packedEntity.World.IsEntityAliveInternal(packedEntity.Id) || packedEntity.World.GetEntityGen(packedEntity.Id) != packedEntity.Gen)
-            {
-                return false;
-            }
-            return true;
+            entity.World.DespawnEntity(entity.Id);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool EqualsTo(this in EcsPackedEntityWithWorld a, in EcsPackedEntityWithWorld b)
+        public static bool EqualsTo(this in EcsEntity a, in EcsEntity b)
         {
             return a.Id == b.Id && a.Gen == b.Gen && a.World == b.World;
         }
