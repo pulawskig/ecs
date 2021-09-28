@@ -95,18 +95,18 @@ class CustomSystem : IEcsSystem
     public void Run(EcsWorld world)
     {
         // create a query
-        var query = world.Query<Component1>()
+        var query = world.Query<Component1>().End();
         
         // iterate the query
         // query iteration gives you entity ids.
         foreach (int entityId in query)
         {
             // get components from queries
-            ref var c1 = ref query.Get<Component1>();
+            ref var c1 = ref query.Get<Component1>(entityId);
 
             // you cannot get components not included in the query
             // even if the entity has a Component2
-            ref var c2 = ref query.Get<Component2>(); // WILL CRASH!
+            ref var c2 = ref query.Get<Component2>(entityId); // WILL CRASH!
 
             // if you do want access to other components,
             // you can do so through world
@@ -118,7 +118,7 @@ class CustomSystem : IEcsSystem
 You can put multiple constraints on your queries
 ```csharp
 // create a query with multiple constraints
-var query = world.Query<Component1>().Inc<Component2>().Exc<Component3>();
+var query = world.Query<Component1>().Inc<Component2>().Exc<Component3>().End();
 ```
 > Important: Any query supports any amount of components, include and exclude lists can't intersect and should be unique.
 # Resource
