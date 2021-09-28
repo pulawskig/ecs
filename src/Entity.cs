@@ -15,6 +15,56 @@ namespace Bitron.Ecs
         internal int Id;
         internal int Gen;
         internal EcsWorld World;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public EcsEntity Add<T>() where T : struct
+        {
+            var pool = World.GetPool<T>();
+            pool.Add(Id);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public EcsEntity Add<T>(T component) where T : struct
+        {
+            var pool = World.GetPool<T>();
+            pool.Add(Id) = component;
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T Get<T>() where T : struct
+        {
+            var pool = World.GetPool<T>();
+            return ref pool.Get(Id);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public EcsEntity Remove<T>() where T : struct
+        {
+            var pool = World.GetPool<T>();
+            pool.Remove(Id);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsAlive()
+        {
+            if (World == null 
+                || !World.IsAlive() 
+                || !World.IsEntityAliveInternal(Id) 
+                || World.GetEntityGen(Id) != Gen)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Destroy()
+        {
+            World.DespawnEntity(Id);
+        }
 #if DEBUG
         // For using in IDE debugger.
         internal object[] DebugComponentsView
@@ -22,7 +72,7 @@ namespace Bitron.Ecs
             get
             {
                 object[] list = null;
-                if (World != null && World.IsAlive() && World.IsEntityAliveInternal(Id) && World.GetEntityGen(Id) == Gen)
+                if (IsAlive())
                 {
                     World.GetComponents(Id, ref list);
                 }
@@ -34,7 +84,7 @@ namespace Bitron.Ecs
         {
             get
             {
-                if (World != null && World.IsAlive() && World.IsEntityAliveInternal(Id) && World.GetEntityGen(Id) == Gen)
+                if (IsAlive())
                 {
                     return World.GetComponentsCount(Id);
                 }
@@ -84,67 +134,6 @@ namespace Bitron.Ecs
             entity.Id = entityId;
             entity.Gen = world.GetEntityGen(entityId);
             return entity;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EcsEntity Add<T>(this in EcsEntity entity) where T : struct
-        {
-            var pool = entity.World.GetPool<T>();
-            pool.Add(entity.Id);
-            return entity;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref T Get<T>(this in EcsEntity entity) where T : struct
-        {
-            var pool = entity.World.GetPool<T>();
-            return ref pool.Get(entity.Id);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EcsEntity Add<T>(this in EcsEntity entity, T component) where T : struct
-        {
-            var pool = entity.World.GetPool<T>();
-            pool.Add(entity.Id) = component;
-            return entity;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EcsEntity Remove<T>(this in EcsEntity entity) where T : struct
-        {
-            var pool = entity.World.GetPool<T>();
-            pool.Remove(entity.Id);
-            return entity;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAlive(this in EcsEntity entity)
-        {
-            if (entity.World == null 
-                || !entity.World.IsAlive() 
-                || !entity.World.IsEntityAliveInternal(entity.Id) 
-                || entity.World.GetEntityGen(entity.Id) != entity.Gen)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Id(this in EcsEntity entity)
-        {
-            if (!entity.IsAlive())
-            {
-                return -1;
-            }
-
-            return entity.Id;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Destroy(this in EcsEntity entity)
-        {
-            entity.World.DespawnEntity(entity.Id);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

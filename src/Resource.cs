@@ -9,7 +9,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Bitron.Ecs.Resources
+namespace Bitron.Ecs
 {
     internal struct Res<T> where T : struct
     {
@@ -21,7 +21,7 @@ namespace Bitron.Ecs.Resources
         }
     }
 
-    public static class EcsWorldExtentions
+    public static class EcsResourceExtentions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddResource<T>(this EcsWorld world, T resource) where T : struct
