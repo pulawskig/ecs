@@ -145,7 +145,7 @@ class System : IEcsSystem
     public void Run(EcsWorld world)
     {
         // get resource from world
-        ref CustomResource res = ref systems.GetResource<CustomResource> (); 
+        ref CustomResource res = ref systems.GetResource<CustomResource>(); 
         
         string path = string.Format(res.Path, 123);
         // path == "Items/123" here.
