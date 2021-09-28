@@ -237,6 +237,12 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetComponentsCount()
+        {
+            return _poolHashes.Count;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetComponentsCount(int entity)
         {
             return Entities[entity].ComponentsCount;

@@ -89,6 +89,7 @@ namespace Bitron.Ecs
             _entity = entity;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EcsEntityRef Add<T>() where T : struct
         {
             var pool = _world.GetPool<T>();
@@ -96,6 +97,14 @@ namespace Bitron.Ecs
             return this;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T Get<T>() where T : struct
+        {
+            var pool = _world.GetPool<T>();
+            return ref pool.Get(_entity);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EcsEntityRef Add<T>(T component) where T : struct
         {
             var pool = _world.GetPool<T>();
@@ -103,6 +112,7 @@ namespace Bitron.Ecs
             return this;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EcsEntityRef Remove<T>() where T : struct
         {
             var pool = _world.GetPool<T>();
@@ -110,11 +120,13 @@ namespace Bitron.Ecs
             return this;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Destroy()
         {
             _world.DespawnEntity(_entity);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Entity()
         {
             return _entity;

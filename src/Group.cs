@@ -49,6 +49,11 @@ namespace Bitron.Ecs
             return this;
         }
 
+        public EcsSystemGroup OneFrame<T>() where T : struct
+        {
+            return Add(EcsSystemType.Run, new OneFrameSystem<T>());
+        }
+
         public void Init(EcsWorld world)
         {
             foreach (var pair in _allSystems)
@@ -135,6 +140,21 @@ namespace Bitron.Ecs
             _runSystems = null;
             _destroySystems = null;
             _postDestroySystems = null;
+        }
+    }
+
+
+    internal class OneFrameSystem<T> : IEcsSystem where T : struct
+    {
+        public void Run(EcsWorld world)
+        {
+            var query = world.Query<T>().End();
+            var pool = query.GetPool<T>();
+
+            foreach (var entity in query)
+            {
+                pool.Remove(entity);
+            }
         }
     }
 }
