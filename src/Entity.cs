@@ -48,6 +48,12 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetId()
+        {
+            return Id;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsAlive()
         {
             if (World == null 
