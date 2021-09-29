@@ -36,7 +36,7 @@ namespace Bitron.Ecs
             }
             else
             {
-                world.Spawn().Add<Res<T>>();
+                world.Spawn().Add(new Res<T>(resource));
             }
         }
 
