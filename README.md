@@ -124,7 +124,7 @@ var query = world.Query<Component1>().Inc<Component2>().Exc<Component3>().End();
 # Resource
 Instance of any custom type can be shared between all systems:
 ```csharp
-struct CustomResource
+class CustomResource
 {
     public string Path;
 }
@@ -145,7 +145,7 @@ class System : IEcsSystem
     public void Run(EcsWorld world)
     {
         // get resource from world
-        ref CustomResource res = ref systems.GetResource<CustomResource>(); 
+        CustomResource res = systems.GetResource<CustomResource>(); 
         
         string path = string.Format(res.Path, 123);
         // path == "Items/123" here.

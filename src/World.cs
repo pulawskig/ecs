@@ -261,6 +261,12 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetEntitiesCount()
+        {
+            return _entitiesCount - _recycledEntitiesCount;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetWorldSize()
         {
             return Entities.Length;

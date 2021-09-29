@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 
 namespace Bitron.Ecs
 {
-    internal struct Res<T> where T : struct
+    internal struct Res<T> where T : class
     {
         public T Value;
 
@@ -24,14 +24,21 @@ namespace Bitron.Ecs
     public static class EcsResourceExtentions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AddResource<T>(this EcsWorld world, T resource) where T : struct
+        public static void AddResource<T>(this EcsWorld world, T resource) where T : class
         {
-            if (world.Query<Res<T>>().End().GetEntitiesCount() > 0)
+            var query = world.Query<Res<T>>().End();
+
+            if (query.GetEntitiesCount() > 0)
             {
 #if DEBUG
                 throw new Exception($"AddResource<{typeof(T).Name}> resource of that type already exists.");
-#else
-                world.GetResource<T>() = resource;
+#else           
+                var pool = query.GetPool<Res<T>>();
+                
+                foreach(var e in query)
+                {
+                    pool.Get(e) = new Res<T>(resource);
+                }
 #endif
             }
             else
@@ -41,7 +48,7 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref T GetResource<T>(this EcsWorld world) where T : struct
+        public static T GetResource<T>(this EcsWorld world) where T : class
         {
             var query = world.Query<Res<T>>().End();
 
@@ -59,11 +66,11 @@ namespace Bitron.Ecs
                 break;
             }
 
-            return ref query.Get<Res<T>>(entity).Value;
+            return query.Get<Res<T>>(entity).Value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RemoveResource<T>(this EcsWorld world) where T : struct
+        public static void RemoveResource<T>(this EcsWorld world) where T : class
         {
             var query = world.Query<Res<T>>().End();
 
@@ -81,7 +88,7 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasResource<T>(this EcsWorld world) where T : struct
+        public static bool HasResource<T>(this EcsWorld world) where T : class
         {
             var query = world.Query<Res<T>>().End();
 
