@@ -91,13 +91,7 @@ namespace Bitron.Ecs
         public static bool HasResource<T>(this EcsWorld world) where T : class
         {
             var query = world.Query<Res<T>>().End();
-
-            if (query.GetEntitiesCount() == 0)
-            {
-                return true;
-            }
-
-            return false;
+            return query.GetEntitiesCount() > 0;
         }
     }
 }
