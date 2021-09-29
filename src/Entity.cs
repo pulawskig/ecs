@@ -48,6 +48,12 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Has<T>() where T : struct
+        {
+            return World.GetPool<T>().Has(Id);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetId()
         {
             return Id;
