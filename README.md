@@ -198,29 +198,35 @@ You can group Systems together into an EcsSystemGroup
 // create a new system group
 EcsSystemGroup systemGroup = new EcsSystemGroup();
 
+// add systems to the group
 systemGroup
-    .Add(EcsSystemType.PreInit, new PreInitSystem())
-    .Add(EcsSystemType.Init, new InitSystem())
-    .Add(EcsSystemType.Run, new RunSystem())
-    .Add(EcsSystemType.Destroy, new DestroySystem())
-    .Add(EcsSystemType.PostDestroy, new PostDestroySystem());
-
-// systems are added as RunSystem per default;
-systemGroup.Add(new AnotherRunSystem());
+    .Add(new BirthSystem())
+    .Add(new AgeSystem())
+    .Add(new DeathSystem())
+    .Add(new PhysicsSystem())
 
 // like systems, system groups are run on a world
 EcsWorld world = new EcsWorld();
 
-// run init systems
-systemGroup.Init(world);
-
-// run run systems
+// run all systems in the group
 systemGroup.Run(world);
-
-// run destroy systems
-systemGroup.Destroy(world);
 ```
-> Important: Do not forget to call `EcsSystemGroup.Destroy()` method if instance will not be used anymore.
+### One Frame Systems
+Sometimes it is useful to be able add a System that removes all components of a certain type from all entities.
+Therefore you can 
+```csharp
+EcsSystemGroup systemGroup = new EcsSystemGroup();
+
+systemGroup
+    .Add(new AttackSystem())
+    .Add(new DamageSystem())
+    .OneFrame<Damage>(); // removes any Damage components from all entities
+```
+If you don't use EcsSystemGroup, you still can use a predefined System for this
+```csharp
+var system = new RemoveAllComponentsOfType<Damage>();
+system.Run(world);
+```
 
 ## Custom engine
 > C#7.3 or above required for this framework.
@@ -231,40 +237,35 @@ using Bitron.Ecs;
 
 class Engine
 {
-    EcsWorld _world;
-    EcsSystemGroup _systems;
+    EcsWorld _world = new EcsWorld();
+    EcsSystemGroup _initSystems = new EcsSystemGroup();
+    EcsSystemGroup _runSystems = new EcsSystemGroup();
+    EcsSystemGroup _destroySystems = new EcsSystemGroup();
 
     // Initialization of ecs world and systems.
     void Init()
-    {        
-        _world = new EcsWorld();
-        _systemGroup = new EcsSystemGroup();
-        _systemGroup
-            // register your systems here, for example:
-            // .Add(new TestSystem1())
-            // .Add(new TestSystem2())
-            .Init(_world);
+    {
+        // add your systems
+        _initSystems.Add(new SpawnPlayerSystem());
+        _runSystems.Add(new UpdatePlayerSystem()).Add(new PhysicsSystem());
+        _destroySytstems.Add(new DespawnPlayerSystem());
+
+        // run init systems
+        _initSystems?.Run(_world);
     }
 
     // Engine update loop.
     void UpdateLoop()
     {
-        _systemGroup?.Run(_world);
+        _runSystems?.Run(_world);
     }
 
     // Cleanup.
     void Destroy()
     {
-        if (_systemGroup != null)
-        {
-            _systemGroup.Destroy(_world);
-            _systemGroup = null;
-        }
-        if (_world != null)
-        {
-            _world.Destroy();
-            _world = null;
-        }
+        // run destroy systems
+        _destroySystems?.Run(_world);
+        _world?.Destroy();
     }
 }
 ```
