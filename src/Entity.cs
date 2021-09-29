@@ -73,7 +73,7 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Destroy()
+        public void Despawn()
         {
             World.DespawnEntity(Id);
         }
