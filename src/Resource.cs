@@ -11,13 +11,18 @@ using System.Runtime.CompilerServices;
 
 namespace Bitron.Ecs
 {
-    internal struct Res<T> where T : class
+    internal struct Res<T> : IEcsAutoReset<Res<T>> where T : class
     {
         public T Value;
 
         public Res(T value)
         {
             Value = value;
+        }
+
+        public void AutoReset(ref Res<T> c)
+        {
+            c.Value = null;
         }
     }
 
