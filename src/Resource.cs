@@ -75,6 +75,19 @@ namespace Bitron.Ecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TryGetResource<T>(this EcsWorld world, out T resource) where T : class
+        {
+            if (world.HasResource<T>())
+            {
+                resource = world.GetResource<T>();
+                return true;
+            }
+
+            resource = null;
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RemoveResource<T>(this EcsWorld world) where T : class
         {
             var query = world.Query<Res<T>>().End();
