@@ -71,7 +71,7 @@ namespace Bitron.Ecs
                 break;
             }
 
-            return query.Get<Res<T>>(entity).Value;
+            return world.Entity(entity).Get<Res<T>>().Value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
