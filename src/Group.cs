@@ -30,9 +30,9 @@ namespace Bitron.Ecs
             for(var i = 0; i < _systems.Count; i++)
             {
                 _systems[i].Run(world);
-#if DEBUG
-                if (world.CheckForLeakedEntities()) { throw new System.Exception($"Empty entity detected in world \"{world.Name}\" after {_systems[i].GetType().Name}.Run()."); }
-#endif
+// #if DEBUG
+//                 if (world.CheckForLeakedEntities()) { throw new System.Exception($"Empty entity detected in world \"{world.Name}\" after {_systems[i].GetType().Name}.Run()."); }
+// #endif
             }
         }
     }
